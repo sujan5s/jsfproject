@@ -16,6 +16,7 @@ export default function AdminHome() {
 
         <div className="admin-actions">
           <a href="/admin/addproduct" className="admin-btn">➕ Add Product</a>
+          <a href="/admin/adminproduct" className="admin-btn">Admin Product</a>
           <a href="/dashboard" className="admin-btn">📊 View Dashboard</a>
           <a href="/orders" className="admin-btn">📦 View Orders</a>
         </div>

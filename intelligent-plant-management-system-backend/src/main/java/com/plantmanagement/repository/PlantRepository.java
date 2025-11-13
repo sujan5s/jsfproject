@@ -2,5 +2,9 @@ package com.plantmanagement.repository;
 
 import com.plantmanagement.entity.Plant;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface PlantRepository extends JpaRepository<Plant, Long> {}
+@Repository
+public interface PlantRepository extends JpaRepository<Plant, Long> {
+    // basic CRUD from JpaRepository is enough for now
+}

@@ -28,6 +28,7 @@ export default function Navbar() {
           <>
             <Link to="/admin/home">Home</Link>
             <Link to="/admin/addproduct">Add Product</Link>
+            <Link to="/admin/adminproduct">Admin Product</Link>
             <Link to="/admin/dashboard">Dashboard</Link>
             <button className="logout-btn" onClick={handleLogout}>
               Logout

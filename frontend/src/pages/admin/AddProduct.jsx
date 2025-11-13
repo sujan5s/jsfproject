@@ -1,105 +1,76 @@
 import React, { useState } from "react";
 
-
 export default function AddProduct() {
-  const [plant, setPlant] = useState({
+  const [form, setForm] = useState({
     name: "",
     description: "",
-    price: "",
-    stock: "",
+    price: ""
   });
 
   const [image, setImage] = useState(null);
-  const [message, setMessage] = useState("");
+  const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setPlant({ ...plant, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleImage = (e) => {
-    setImage(e.target.files[0]);
-  };
+  const handleFile = (e) => setImage(e.target.files[0]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!image) {
-      setMessage("Please upload a plant image!");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("name", plant.name);
-    formData.append("description", plant.description);
-    formData.append("price", plant.price);
-    formData.append("stock", plant.stock);
-    formData.append("image", image);
+    setLoading(true);
+    setMsg("");
 
     try {
-      const response = await fetch("http://localhost:8080/api/plants/add", {
+      const fd = new FormData();
+      fd.append("name", form.name);
+      fd.append("description", form.description);
+      fd.append("price", form.price);
+      if (image) fd.append("image", image);
+
+      const res = await fetch("http://localhost:8080/api/plants/add", {
         method: "POST",
-        body: formData,
+        body: fd
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to add plant");
-      }
+      if (!res.ok) throw new Error("Upload failed!");
 
-      setMessage("Plant added successfully!");
-      setPlant({ name: "", description: "", price: "", stock: "" });
+      setMsg("Product added successfully!");
+      setForm({ name: "", description: "", price: "" });
       setImage(null);
-    } catch (error) {
-      setMessage("Error adding plant");
+
+    } catch (err) {
+      setMsg("Error: " + err.message);
     }
+
+    setLoading(false);
   };
 
   return (
-    <div className="addplant-container">
-      <form className="addplant-box" onSubmit={handleSubmit}>
-        <h2>Add New Plant 🌿</h2>
+    <div className="add-product-container">
+      <h2>Add New Plant</h2>
 
-        {message && <p className="msg">{message}</p>}
+      <form onSubmit={handleSubmit}>
+        <input type="text" name="name" placeholder="Plant Name"
+               value={form.name} onChange={handleChange} required />
 
-        <input
-          type="text"
-          name="name"
-          placeholder="Plant Name"
-          value={plant.name}
-          onChange={handleChange}
-          required
-        />
+        <textarea name="description" placeholder="Description"
+                  value={form.description} onChange={handleChange} />
 
-        <textarea
-          name="description"
-          placeholder="Description"
-          value={plant.description}
-          onChange={handleChange}
-          required
-        />
+        <input type="text" name="price" placeholder="Price"
+               value={form.price} onChange={handleChange} required />
 
-        <input
-          type="number"
-          name="price"
-          placeholder="Price"
-          value={plant.price}
-          onChange={handleChange}
-          required
-        />
+        <label className="file-upload-box">
+          {image ? image.name : "Choose Plant Image"}
+          <input type="file" accept="image/*" onChange={handleFile} hidden />
+        </label>
 
-        <input
-          type="number"
-          name="stock"
-          placeholder="Stock Quantity"
-          value={plant.stock}
-          onChange={handleChange}
-          required
-        />
-
-        <label className="upload-label">Upload Image</label>
-        <input type="file" accept="image/*" onChange={handleImage} required />
-
-        <button type="submit" className="btn">Add Plant</button>
+        <button type="submit" className="add-product-btn">
+          {loading ? "Adding..." : "Add Product"}
+        </button>
       </form>
+
+      {msg && <p className={msg.startsWith("Error") ? "error" : "success"}>{msg}</p>}
     </div>
   );
 }

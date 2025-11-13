@@ -1,34 +1,47 @@
 package com.plantmanagement.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "plants")
 public class Plant {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
 
-    @Column(length = 1000)
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    private double price;
-    private int stock;
+    private BigDecimal price;
+
+    @Column(name = "image_url")
     private String imageUrl;
 
     public Plant() {}
 
-    public Plant(String name, String description, double price, int stock, String imageUrl) {
+    public Plant(String name, String description, BigDecimal price, String imageUrl) {
         this.name = name;
         this.description = description;
         this.price = price;
-        this.stock = stock;
         this.imageUrl = imageUrl;
     }
 
-    // Getters & Setters
-    // ...
+    // Getters / setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }
