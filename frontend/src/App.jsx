@@ -16,6 +16,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminHome from "./pages/AdminHome";
 import AddProduct from "./pages/admin/AddProduct";
 import AdminProducts from "./pages/admin/AdminProducts";
+import PlantScannerPage from "./pages/PlantScannerPage";
 
 export default function App() {
   return (
@@ -78,6 +79,7 @@ export default function App() {
         <Route path="/admin/home" element={<AdminHome />} />
         <Route path="/admin/addproduct" element={<AddProduct />} />
         <Route path="/admin/adminproduct" element={<AdminProducts/>} />
+        <Route path="/scan" element={<PlantScannerPage/>} />
       </Routes>
       
 

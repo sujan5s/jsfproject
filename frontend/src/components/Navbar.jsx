@@ -42,6 +42,7 @@ export default function Navbar() {
             <Link to="/plants">Plants</Link>
             <Link to="/cart">Cart</Link>
             <Link to="/orders">Orders</Link>
+            <Link to="/scan">Plant Scanner</Link>
             <button className="logout-btn" onClick={handleLogout}>
               Logout
             </button>

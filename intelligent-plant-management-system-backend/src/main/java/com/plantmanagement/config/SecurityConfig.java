@@ -21,6 +21,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/plants/**").permitAll()
                         .requestMatchers("/api/cart/**").permitAll()   // ✅ added
+                        .requestMatchers("/chat/**").permitAll()
                         .anyRequest().permitAll()
                 );
 
@@ -33,7 +34,7 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5173")
+                        .allowedOriginPatterns("http://localhost:5173")
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
                         .allowedHeaders("*")
                         .allowCredentials(true);
