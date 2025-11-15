@@ -1,24 +1,111 @@
 import React, { useEffect, useState } from "react";
-import ProductCard from "../components/ProductCard";
+import { useNavigate } from "react-router-dom";
 
 export default function Plants() {
   const [plants, setPlants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // You can replace with real API later
-    setPlants([
-      { id: 1, name: "Fiddle Leaf Fig", category: "Indoor", price: 499, imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6" },
-      { id: 2, name: "Snake Plant", category: "Indoor", price: 299, imageUrl: "https://images.unsplash.com/photo-1524592094714-0f0654e20314" },
-      { id: 3, name: "Rose", category: "Outdoor", price: 199, imageUrl: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6" },
-    ]);
+    const uid = localStorage.getItem("userId");
+    setUserId(uid);
+
+    fetch("http://localhost:8080/api/plants")
+      .then((res) => res.json())
+      .then((data) => {
+        setPlants(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error loading plants:", err);
+        setLoading(false);
+      });
   }, []);
 
+  // 🛒 Add to Cart using backend API
+  const handleAddToCart = async (plant) => {
+    if (!userId) {
+      alert("Please login first!");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:8080/api/cart/${userId}/add`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plantId: plant.id,
+          plantName: plant.name,
+          price: plant.price,
+          quantity: 1,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to add item to cart");
+      alert(`${plant.name} added to cart!`);
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      alert("Something went wrong!");
+    }
+  };
+
+  // ⚡ Order Now — adds item to cart & redirects to cart page
+  const handleOrderNow = async (plant) => {
+    if (!userId) {
+      alert("Please login first!");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:8080/api/cart/${userId}/add`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plantId: plant.id,
+          plantName: plant.name,
+          price: plant.price,
+          quantity: 1,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to process order");
+      navigate("/cart");
+    } catch (err) {
+      console.error("Error placing order:", err);
+      alert("Something went wrong!");
+    }
+  };
+
+  if (loading) return <h2 className="loading">Loading plants...</h2>;
+
   return (
-    <div className="container">
-      <h2>All Plants</h2>
-      <div className="grid">
+    <div className="plants-container">
+      <h2 className="plants-title">🌿 Available Plants</h2>
+
+      <div className="plants-grid">
         {plants.map((p) => (
-          <ProductCard key={p.id} plant={p} />
+          <div className="plant-card" key={p.id}>
+            <img
+              src={`http://localhost:8080${p.imageUrl}`}
+              alt={p.name}
+              className="plant-img"
+            />
+
+            <h3>{p.name}</h3>
+            <p className="price">₹{p.price}</p>
+            <p className="desc">{p.description}</p>
+
+            <button className="cart-btn" onClick={() => handleAddToCart(p)}>
+              🛒 Add to Cart
+            </button>
+
+            <button className="order-btn" onClick={() => handleOrderNow(p)}>
+              ⚡ Order Now
+            </button>
+          </div>
         ))}
       </div>
     </div>
