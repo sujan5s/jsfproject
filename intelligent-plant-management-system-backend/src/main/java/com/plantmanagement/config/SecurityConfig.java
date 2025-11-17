@@ -20,7 +20,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/plants/**").permitAll()
-                        .requestMatchers("/api/cart/**").permitAll()   // ✅ added
+                        .requestMatchers("/api/cart/**").permitAll()
+                        .requestMatchers("/api/orders/**").permitAll()     // ✅ Added Order API access
                         .requestMatchers("/chat/**").permitAll()
                         .anyRequest().permitAll()
                 );

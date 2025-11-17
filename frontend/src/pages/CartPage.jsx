@@ -5,46 +5,88 @@ export default function CartPage() {
   const [cart, setCart] = useState([]);
   const [total, setTotal] = useState(0);
   const navigate = useNavigate();
+
   const userId = localStorage.getItem("userId");
 
   useEffect(() => {
     loadCart();
   }, []);
 
+  // Load cart from backend
   const loadCart = async () => {
-    const res = await fetch(`http://localhost:8080/api/cart/${userId}`);
-    const data = await res.json();
+    try {
+      const res = await fetch(`http://localhost:8080/api/cart/${userId}`);
+      const data = await res.json();
 
-    setCart(data);
-    calculateTotal(data);
+      setCart(data);
+      calculateTotal(data);
+    } catch (err) {
+      console.error("Error loading cart:", err);
+    }
   };
 
+  // Calculate price total
   const calculateTotal = (items) => {
     let sum = 0;
     items.forEach((item) => (sum += item.price * item.quantity));
     setTotal(sum);
   };
 
-  const updateQuantity = async (itemId, change) => {
-    const res = await fetch(
-      `http://localhost:8080/api/cart/update/${itemId}?change=${change}`,
-      { method: "PUT" }
-    );
+  // Update quantity — backend requires body
+  const updateQuantity = async (itemId, newQty) => {
+    if (newQty < 1) return;
 
-    if (res.ok) loadCart();
-  };
-
-  const removeItem = async (itemId) => {
-    const res = await fetch(`http://localhost:8080/api/cart/remove/${itemId}`, {
-      method: "DELETE",
+    await fetch(`http://localhost:8080/api/cart/update/${itemId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ quantity: newQty }),
     });
 
-    if (res.ok) loadCart();
+    loadCart();
   };
 
-  const handleOrderNow = () => {
-    alert("Order placed successfully! (Backend connection coming soon)");
-    navigate("/orders");
+  // Remove item
+  const removeItem = async (itemId) => {
+    await fetch(`http://localhost:8080/api/cart/remove/${itemId}`, {
+      method: "DELETE",
+    });
+    loadCart();
+  };
+
+  // ⚡ Place order
+  const handleOrderNow = async () => {
+    if (cart.length === 0) return;
+
+    const orderData = {
+      userId: userId,
+      items: cart.map((item) => ({
+        plantId: item.plantId,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      totalPrice: total,
+    };
+
+    try {
+      const res = await fetch("http://localhost:8080/api/orders/place", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!res.ok) throw new Error("Failed to place order");
+
+      alert("🎉 Order placed successfully!");
+
+      // Clear cart in backend
+      await fetch(`http://localhost:8080/api/cart/clear/${userId}`, {
+        method: "DELETE",
+      });
+
+      navigate("/orders");
+    } catch (err) {
+      alert("Order failed: " + err.message);
+    }
   };
 
   return (
@@ -52,27 +94,37 @@ export default function CartPage() {
       <h2 className="cart-title">🛒 Your Cart</h2>
 
       <div className="cart-flex">
-        
-        {/* LEFT SIDE - ITEMS */}
+        {/* LEFT ITEMS */}
         <div className="cart-items">
           {cart.length === 0 ? (
             <p className="empty-cart">Your cart is empty.</p>
           ) : (
             cart.map((item) => (
               <div className="cart-card" key={item.id}>
-                <img
-                  src={`http://localhost:8080${item.imageUrl}`}
-                  alt={item.plantName}
-                />
+                {/* Show plant image only if available */}
+                {item.imageUrl && (
+                  <img
+                    src={`http://localhost:8080${item.imageUrl}`}
+                    alt={item.plantName}
+                  />
+                )}
 
                 <div className="cart-info">
                   <h3>{item.plantName}</h3>
                   <p className="price">₹{item.price}</p>
 
                   <div className="qty-box">
-                    <button onClick={() => updateQuantity(item.id, -1)}>-</button>
+                    <button
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    >
+                      -
+                    </button>
                     <span>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, 1)}>+</button>
+                    <button
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
 
@@ -87,10 +139,11 @@ export default function CartPage() {
           )}
         </div>
 
-        {/* RIGHT SIDE - TOTAL SECTION */}
+        {/* RIGHT SUMMARY */}
         <div className="cart-summary">
           <h3>Order Summary</h3>
           <p className="summary-total">Total: ₹{total}</p>
+
           <button
             className="order-now-btn"
             onClick={handleOrderNow}

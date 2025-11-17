@@ -21,23 +21,28 @@ public class CartService {
     }
 
     public CartItem addItem(CartItem item) {
-        // if same plant exists for user, increase quantity
-        List<CartItem> items = repo.findByUserId(item.getUserId());
-        Optional<CartItem> existing = items.stream()
-                .filter(i -> i.getPlantId().equals(item.getPlantId()))
-                .findFirst();
+
+        // If plant already exists in the cart -> increase quantity
+        Optional<CartItem> existing =
+                repo.findByUserId(item.getUserId())
+                        .stream()
+                        .filter(i -> i.getPlantId().equals(item.getPlantId()))
+                        .findFirst();
 
         if (existing.isPresent()) {
             CartItem e = existing.get();
             e.setQuantity(e.getQuantity() + item.getQuantity());
             return repo.save(e);
-        } else {
-            return repo.save(item);
         }
+
+        // Otherwise add as new item
+        return repo.save(item);
     }
 
     public CartItem updateItem(Long itemId, Integer quantity) {
-        CartItem ci = repo.findById(itemId).orElseThrow(() -> new RuntimeException("Cart item not found"));
+        CartItem ci = repo.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Cart item not found"));
+
         ci.setQuantity(quantity);
         return repo.save(ci);
     }
@@ -47,6 +52,6 @@ public class CartService {
     }
 
     public void clearCart(Long userId) {
-        repo.findByUserId(userId).forEach(ci -> repo.deleteById(ci.getId()));
+        repo.deleteByUserId(userId);
     }
 }
